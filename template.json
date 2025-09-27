@@ -1,0 +1,89 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Template para criar uma infraestrutura basica com EC2, Security Group e Elastic IP para o desafio de CloudFormation.",
+  "Parameters": {
+    "InstanceType": {
+      "Type": "String",
+      "Description": "Tipo da instancia EC2 (ex: t2.micro, t2.small)",
+      "Default": "t2.micro",
+      "AllowedValues": [
+        "t2.micro",
+        "t2.small",
+        "t2.medium"
+      ]
+    },
+    "KeyPairName": {
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "Description": "Nome de um KeyPair EC2 existente para acesso SSH"
+    }
+  },
+  "Resources": {
+    "EC2SecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Permitir acesso SSH e HTTP.",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Permitir trafego SSH de qualquer lugar."
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Permitir trafego HTTP de qualquer lugar."
+          }
+        ]
+      }
+    },
+    "EC2Instance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "KeyName": {
+          "Ref": "KeyPairName"
+        },
+        "ImageId": "ami-0c55b159cbfafe1f0",
+        "SecurityGroupIds": [
+          {
+            "Ref": "EC2SecurityGroup"
+          }
+        ]
+      }
+    },
+    "EIP": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "InstanceId": {
+          "Ref": "EC2Instance"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "InstanceId": {
+      "Value": {
+        "Ref": "EC2Instance"
+      },
+      "Description": "ID da instancia EC2 criada."
+    },
+    "SecurityGroupId": {
+      "Value": {
+        "Ref": "EC2SecurityGroup"
+      },
+      "Description": "ID do Security Group criado."
+    },
+    "ElasticIpAddress": {
+      "Value": {
+        "Ref": "EIP"
+      },
+      "Description": "Endereco de IP Publico (Elastic IP) associado a instancia EC2."
+    }
+  }
+}
